@@ -72,11 +72,28 @@ output "caller_info" {
   value = data.aws_caller_identity.current
 }
 
-resource "aws_instance" "my_server" {
-  ami = data.aws_ami.name.id
-  instance_type = "t3.micro"
-
+data "aws_security_group" "name" {
   tags = {
-    Name = "tokyo"
+    Name = "nginx-sg"
+  }
+}
+
+data "aws_subnet" "private-subnet" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.my-vpc.id]
+  }
+  tags = {
+    Name = "private-subnet"
+  }
+}
+
+resource "aws_instance" "my_ec2" {
+  ami = "ami-02b8269d5e85954ef"
+  instance_type = "t3.micro"
+  security_groups = [data.aws_security_group.name.id]
+  subnet_id = data.aws_subnet.private-subnet.id
+  tags = {
+    Name = "my-ec2-instance"
   }
 }
